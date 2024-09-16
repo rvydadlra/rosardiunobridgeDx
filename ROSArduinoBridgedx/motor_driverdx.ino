@@ -59,20 +59,25 @@
 
   void setMotorSpeed(int i, int spd) {
     unsigned char reverse = 0;
-  
     if (spd < 0)
     {
+    Serial.println("girdi");
       spd = -spd;
       reverse = 1;
     }
     if (spd > 255)
+    {
       spd = 255;
+    }
     
-    if (i == LEFT) { 
-      if      (reverse == 0) { digitalWrite(DIR_PINL, HIGH); analogWrite(PWM_PINL, spd); }
+    if (i == LEFT)
+    { 
+      if   (reverse == 0) { digitalWrite(DIR_PINL, HIGH); analogWrite(PWM_PINL, spd); }
       else if (reverse == 1) { digitalWrite(DIR_PINL, LOW); analogWrite(PWM_PINL, spd); }
     }
-    else /*if (i == RIGHT) //no need for condition*/ {
+       
+    else if (i == RIGHT) //no need for condition*/
+    {
       if      (reverse == 0) { digitalWrite(DIR_PINR, HIGH); analogWrite(PWM_PINR, spd); }
       else if (reverse == 1) { digitalWrite(DIR_PINR, LOW); analogWrite(PWM_PINR, spd); }
     }
