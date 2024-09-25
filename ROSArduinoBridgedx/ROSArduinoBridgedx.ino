@@ -255,26 +255,31 @@ void setup() {
 // Initialize the motor controller if used */
 #ifdef USE_BASE
   #ifdef ARDUINO_ENC_COUNTER
-    //set as inputs
-    DDRD &= ~(1<<LEFT_ENC_PIN_A);
-    DDRD &= ~(1<<LEFT_ENC_PIN_B);
-    DDRC &= ~(1<<RIGHT_ENC_PIN_A);
-    DDRC &= ~(1<<RIGHT_ENC_PIN_B);
+    // Giriş olarak ayarla
+    DDRD &= ~(1 << LEFT_ENC_PIN_A);
+    DDRD &= ~(1 << LEFT_ENC_PIN_B);
+    DDRD &= ~(1 << LEFT_ENC_PIN_C);
+    DDRC &= ~(1 << RIGHT_ENC_PIN_A);
+    DDRC &= ~(1 << RIGHT_ENC_PIN_B);
+    DDRC &= ~(1 << RIGHT_ENC_PIN_C);
     
-    //enable pull up resistors
-    PORTD |= (1<<LEFT_ENC_PIN_A);
-    PORTD |= (1<<LEFT_ENC_PIN_B);
-    PORTC |= (1<<RIGHT_ENC_PIN_A);
-    PORTC |= (1<<RIGHT_ENC_PIN_B);
+    // Pull-up dirençlerini etkinleştir
+    PORTD |= (1 << LEFT_ENC_PIN_A);
+    PORTD |= (1 << LEFT_ENC_PIN_B);
+    PORTD |= (1 << LEFT_ENC_PIN_C);
+    PORTC |= (1 << RIGHT_ENC_PIN_A);
+    PORTC |= (1 << RIGHT_ENC_PIN_B);
+    PORTC |= (1 << RIGHT_ENC_PIN_C);
     
-    // tell pin change mask to listen to left encoder pins
-    PCMSK2 |= (1 << LEFT_ENC_PIN_A)|(1 << LEFT_ENC_PIN_B);
-    // tell pin change mask to listen to right encoder pins
-    PCMSK1 |= (1 << RIGHT_ENC_PIN_A)|(1 << RIGHT_ENC_PIN_B);
+    // Sol encoder pinleri için pin değişikliği maskesini ayarla
+    PCMSK2 |= (1 << LEFT_ENC_PIN_A) | (1 << LEFT_ENC_PIN_B) | (1 << LEFT_ENC_PIN_C);
+    // Sağ encoder pinleri için pin değişikliği maskesini ayarla
+    PCMSK1 |= (1 << RIGHT_ENC_PIN_A) | (1 << RIGHT_ENC_PIN_B) | (1 << RIGHT_ENC_PIN_C);
     
-    // enable PCINT1 and PCINT2 interrupt in the general interrupt mask
+    // Genel kesme maskasında PCINT1 ve PCINT2 kesmelerini etkinleştir
     PCICR |= (1 << PCIE1) | (1 << PCIE2);
   #endif
+  
   initMotorController();
   resetPID();
 #endif
