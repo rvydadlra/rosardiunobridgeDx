@@ -30,26 +30,27 @@
 #elif defined(ARDUINO_ENC_COUNTER)
   volatile long left_enc_pos = 0L;
   volatile long right_enc_pos = 0L;
-  static const int8_t ENC_STATES [] = {0,1,-1,0,-1,0,0,1,1,0,0,-1,0,-1,1,0};  //encoder lookup table
-    
+ static const int8_t HALL_STATES[] = {0, 1, -1, 0, -1, 0, 0, 1};    
   /* Interrupt routine for LEFT encoder, taking care of actual counting */
-  ISR (PCINT2_vect){
-  	static uint8_t enc_last=0;
-        
-	enc_last <<=2; //shift previous state two places
-	enc_last |= (PIND & (3 << 2)) >> 2; //read the current state into lowest 2 bits
   
-  	left_enc_pos += ENC_STATES[(enc_last & 0x0f)];
-  }
-  
+ISR(PCINT2_vect) {
+    static uint8_t hall_last = 0; // Önceki Hall durumu saklanır
+
+    hall_last <<= 3; // Önceki durumu üç bit sola kaydır
+    hall_last |= (PIND & (7 << 2)) >> 2;  // D2, D3, D4'teki HallA, HallB, HallC sinyallerini oku
+
+    // Sol motorun pozisyonunu güncelle
+    left_motor_pos += HALL_STATES[hall_last & 0x07]; // Tabloyu kullanarak pozisyonu güncelle
+}
+
   /* Interrupt routine for RIGHT encoder, taking care of actual counting */
   ISR (PCINT1_vect){
-        static uint8_t enc_last=0;
+        static uint8_t hall_last = 0;
           	
-	enc_last <<=2; //shift previous state two places
-	enc_last |= (PINC & (3 << 4)) >> 4; //read the current state into lowest 2 bits
+	hall_last <<= 3; // Önceki durumu üç bit sola kaydır
+	hall_last |= (PINC & (7 << 4)) >> 4;  // C4, C5, C6'teki HallA, HallB, HallC sinyallerini oku
   
-  	right_enc_pos += ENC_STATES[(enc_last & 0x0f)];
+  	 right_motor_pos += HALL_STATES[hall_last & 0x07];  // Hall sinyallerine göre pozisyonu güncelle
   }
   
   /* Wrap the encoder reading function */
