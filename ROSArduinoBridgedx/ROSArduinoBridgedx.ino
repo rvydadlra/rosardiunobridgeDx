@@ -251,35 +251,28 @@ int runCommand() {
 /* Setup function--runs once at startup. */
 void setup() {
   Serial.begin(BAUDRATE);
+  pinMode(LEFT_PIN_A, INPUT);
+    pinMode(LEFT_PIN_B, INPUT);
+    pinMode(LEFT_PIN_C, INPUT);
 
+    // Sağ motor pinlerini giriş olarak ayarla
+    pinMode(RIGHT_PIN_A, INPUT);
+    pinMode(RIGHT_PIN_B, INPUT);
+    pinMode(RIGHT_PIN_C, INPUT);
+
+    // Sol motor için kesmeleri etkinleştir
+    attachInterrupt(digitalPinToInterrupt(LEFT_PIN_A), leftISR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(LEFT_PIN_B), leftISR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(LEFT_PIN_C), leftISR, CHANGE);
+
+    // Sağ motor için kesmeleri etkinleştir
+    attachInterrupt(digitalPinToInterrupt(RIGHT_PIN_A), rightISR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(RIGHT_PIN_B), rightISR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(RIGHT_PIN_C), rightISR, CHANGE);
 // Initialize the motor controller if used */
+ 
 #ifdef USE_BASE
-  #ifdef ARDUINO_ENC_COUNTER
-    // Giriş olarak ayarla
-    DDRD &= ~(1 << LEFT_ENC_PIN_A);
-    DDRD &= ~(1 << LEFT_ENC_PIN_B);
-    DDRD &= ~(1 << LEFT_ENC_PIN_C);
-    DDRC &= ~(1 << RIGHT_ENC_PIN_A);
-    DDRC &= ~(1 << RIGHT_ENC_PIN_B);
-    DDRC &= ~(1 << RIGHT_ENC_PIN_C);
-    
-    // Pull-up dirençlerini etkinleştir
-    PORTD |= (1 << LEFT_ENC_PIN_A);
-    PORTD |= (1 << LEFT_ENC_PIN_B);
-    PORTD |= (1 << LEFT_ENC_PIN_C);
-    PORTC |= (1 << RIGHT_ENC_PIN_A);
-    PORTC |= (1 << RIGHT_ENC_PIN_B);
-    PORTC |= (1 << RIGHT_ENC_PIN_C);
-    
-    // Sol encoder pinleri için pin değişikliği maskesini ayarla
-    PCMSK2 |= (1 << LEFT_ENC_PIN_A) | (1 << LEFT_ENC_PIN_B) | (1 << LEFT_ENC_PIN_C);
-    // Sağ encoder pinleri için pin değişikliği maskesini ayarla
-    PCMSK1 |= (1 << RIGHT_ENC_PIN_A) | (1 << RIGHT_ENC_PIN_B) | (1 << RIGHT_ENC_PIN_C);
-    
-    // Genel kesme maskasında PCINT1 ve PCINT2 kesmelerini etkinleştir
-    PCICR |= (1 << PCIE1) | (1 << PCIE2);
-  #endif
-  
+  #ifdef ARDUINO_ENC_COUNTER 
   initMotorController();
   resetPID();
 #endif
