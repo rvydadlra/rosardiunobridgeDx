@@ -30,28 +30,72 @@
 #elif defined(ARDUINO_ENC_COUNTER)
   volatile long left_enc_pos = 0L;
   volatile long right_enc_pos = 0L;
- static const int8_t HALL_STATES[] = {0, 1, -1, 0, -1, 0, 0, 1};    
+  volatile uint8_t left_last = 0;
+// Sağ motorun önceki durumu
+  volatile uint8_t right_last = 0;
+  static const int8_t ENC_STATES_SOL[] = {
+    // Önceki (000)
+    0,  1,  -1, 0,  -1,  0,  1,  0,   // Yeni (000000 - 000111)
+    // Önceki (001)
+    -1,  0,  0,  1,  0,  -1,  0,  1,  // Yeni (001000 - 001111)
+    // Önceki (010)
+    1,  0,  0,  -1,  0,  1,  0,  -1,  // Yeni (010000 - 010111)
+    // Önceki (011)
+    0,  -1,  1,  0,  -1,  0,  1,  0,  // Yeni (011000 - 011111)
+    // Önceki (100)
+    0,  1,  0,  -1,  1,  0,  -1,  0,  // Yeni (100000 - 100111)
+    // Önceki (101)
+    1,  0,  -1,  0,  -1,  0,  1,  0,  // Yeni (101000 - 101111)
+    // Önceki (110)
+    0,  -1,  1,  0,  1,  0,  -1,  0,  // Yeni (110000 - 110111)
+    // Önceki (111)
+    0,  0,  0,  0,  0,  0,  0,  0    // Yeni (111000 - 111111)
+};  
+
+static const int8_t ENC_STATES_SAG[] = {
+    // Önceki (000)
+    0,  -1,  1,  0,  1,  0,  -1,  0,   // Yeni (000000 - 000111)
+    // Önceki (001)
+    1,  0,  0,  -1,  0,  1,  0,  -1,   // Yeni (001000 - 001111)
+    // Önceki (010)
+    -1,  0,  0,  1,  0,  -1,  0,  1,   // Yeni (010000 - 010111)
+    // Önceki (011)
+    0,  1,  -1,  0,  1,  0,  -1,  0,   // Yeni (011000 - 011111)
+    // Önceki (100)
+    0,  -1,  0,  1,  -1,  0,  1,  0,   // Yeni (100000 - 100111)
+    // Önceki (101)
+    -1,  0,  1,  0,  1,  0,  -1,  0,   // Yeni (101000 - 101111)
+    // Önceki (110)
+    0,  1,  -1,  0,  -1,  0,  1,  0,   // Yeni (110000 - 110111)
+    // Önceki (111)
+    0,  0,  0,  0,  0,  0,  0,  0      // Yeni (111000 - 111111)
+};
   /* Interrupt routine for LEFT encoder, taking care of actual counting */
-  
-ISR(PCINT2_vect) {
-    static uint8_t hall_last = 0; // Önceki Hall durumu saklanır
+  void leftISR() {
+    // D2, D3 ve D21'deki Hall sensör sinyallerini oku
+    uint8_t hall_signals = (digitalRead(LEFT_PIN_2) << 2) | (digitalRead(LEFT_PIN_3) << 1) | digitalRead(LEFT_PIN_21);
 
-    hall_last <<= 3; // Önceki durumu üç bit sola kaydır
-    hall_last |= (PIND & (7 << 2)) >> 2;  // D2, D3, D4'teki HallA, HallB, HallC sinyallerini oku
+    // Yeni 3 bitlik Hall sensör sinyalleriyle tabloyu güncelle
+    left_last <<= 3;
+    left_last |= hall_signals;
 
-    // Sol motorun pozisyonunu güncelle
-    left_motor_pos += HALL_STATES[hall_last & 0x07]; // Tabloyu kullanarak pozisyonu güncelle
+    // Pozisyonu güncelle
+    left_enc_pos += ENC_STATES_SOL[(left_last & 0x3F)];
 }
 
+
   /* Interrupt routine for RIGHT encoder, taking care of actual counting */
-  ISR (PCINT1_vect){
-        static uint8_t hall_last = 0;
-          	
-	hall_last <<= 3; // Önceki durumu üç bit sola kaydır
-	hall_last |= (PINC & (7 << 4)) >> 4;  // C4, C5, C6'teki HallA, HallB, HallC sinyallerini oku
-  
-  	 right_motor_pos += HALL_STATES[hall_last & 0x07];  // Hall sinyallerine göre pozisyonu güncelle
-  }
+ void rightISR() {
+    // D18, D19 ve D20'deki Hall sensör sinyallerini oku
+    uint8_t hall_signals = (digitalRead(RIGHT_PIN_18) << 2) | (digitalRead(RIGHT_PIN_19) << 1) | digitalRead(RIGHT_PIN_20);
+
+    // Yeni 3 bitlik Hall sensör sinyalleriyle tabloyu güncelle
+    right_last <<= 3;
+    right_last |= hall_signals;
+
+    // Pozisyonu güncelle
+    right_enc_pos += ENC_STATES_SAG[(right_last & 0x3F)];
+}
   
   /* Wrap the encoder reading function */
   long readEncoder(int i) {
